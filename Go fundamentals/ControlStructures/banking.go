@@ -1,14 +1,47 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"os"
+	"strconv"
+)
 
+const account_balance_file = "balance.txt"
+
+func write_balance_to_file(balance float64){
+	balanceText:= fmt.Sprint(balance)
+	os.WriteFile(account_balance_file, []byte(balanceText), 0644)
+
+}
+
+func get_balance_from_file() (balance float64, err error) {
+	data, err := os.ReadFile("balance.txt")
+	if err != nil {
+		return 1000, errors.New("Could not read from File")
+	}
+	balance_text := string(data)
+	balance, err = strconv.ParseFloat(balance_text, 64) //convert from float64 to string
+	if err != nil {
+		return 1000, errors.New("Could not read from File")
+	}
+	err = nil
+	return 
+}
 
 func main() {
 
-	var account_Balance float64 = 1000
+	account_Balance, err  := get_balance_from_file()
 
+	if err != nil {
+		fmt.Println("ERROR")
+		fmt.Println(err) 
+		return
+	}
+ 
 	
 	for {
+		
 		fmt.Printf(`
 		Welcome to Zin's Bank In Go
 	    1.Check Balance
@@ -29,8 +62,8 @@ func main() {
 				fmt.Print("Enter the amount you want to deposit: ")
 				fmt.Scan(&deposit)
 				account_Balance = account_Balance+deposit
-				fmt.Printf("Your new Balance is: $%f", account_Balance)
-				
+				write_balance_to_file(account_Balance) 
+				fmt.Printf("Your new Balance is: $%f", account_Balance)	
 			case 3:
 				var withdraw float64
 				fmt.Print("Enter the amount you want to withdraw: ")
@@ -39,6 +72,7 @@ func main() {
 					fmt.Println("You broke as hell for that")
 				}
 				account_Balance = account_Balance-withdraw
+				write_balance_to_file(account_Balance)
 				fmt.Printf("Your new Balance is: $%f", account_Balance)
 		
 			default:
